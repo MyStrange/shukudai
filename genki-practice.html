@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta property="og:image" content="shukudai-og.png">
 <meta property="og:title" content="宿題">
+<!--
+  Пути черт в массиве K взяты из KanjiVG (https://kanjivg.tagaini.net/),
+  лицензия Creative Commons Attribution-Share Alike 3.0.
+  Указание авторства перенесено сюда из футера; то же есть в README.
+-->
 <title>宿題</title>
 <link href="https://fonts.googleapis.com/css2?family=Geologica:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -108,7 +113,7 @@
   }
 
   .pill:hover {
-    border-color: var(--text);
+    background: rgba(0,0,0,0.035);
     color: var(--text);
   }
 
@@ -285,7 +290,7 @@
     cursor: pointer;
     transition: all 0.13s;
   }
-  .mode-btn:hover { border-color: var(--text); color: var(--text); }
+  .mode-btn:hover { background: rgba(0,0,0,0.035); color: var(--text); }
   .mode-btn.active {
     background: var(--text);
     border-color: var(--text);
@@ -444,6 +449,8 @@
     padding: 28px 22px 22px;
     text-align: center;
     animation: up 0.28s ease backwards;
+    /* чтобы карточка не исчезала, когда после ответа белеет */
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
   }
 
   .qprompt {
@@ -510,9 +517,14 @@
     cursor: pointer;
     transition: all 0.13s;
   }
-  .qtile:hover { border-color: var(--text); }
-  .qtile.wrong { background: #d9534f; border-color: #d9534f; color: #fff; animation: kshake 0.3s ease; }
-  .qtile.tip { border-color: var(--text); box-shadow: 0 0 0 3px rgba(0,0,0,0.08); }
+  .qtile:hover { background: #fff; }
+  .qtile.wrong {
+    background: #f6dedb;
+    border-color: #d8a29d;
+    color: #9c4a44;
+    animation: kshake 0.3s ease;
+  }
+  .qtile.tip { border-color: rgba(0,0,0,0.35); box-shadow: 0 0 0 3px rgba(0,0,0,0.06); }
 
   .qstat {
     font-family: 'Geologica', sans-serif;
@@ -528,11 +540,16 @@
     color: rgba(0,0,0,0.55);
   }
   .qhintbtn:disabled { opacity: 0.35; cursor: default; }
-  .qhintbtn.qnext {
-    background: var(--text);
-    border-color: var(--text);
-    color: #fff;
+
+  /* главная кнопка «далее» — тёмная, одна на карточке */
+  .qnext {
+    max-width: 220px;
+    margin: 18px auto 0;
+    background: var(--text) !important;
+    border-color: var(--text) !important;
+    color: #fff !important;
   }
+  .qnext:hover { opacity: 0.85; }
 
   /* мнемоника на карточке прописи */
   .kmnemo {
@@ -566,30 +583,35 @@
     cursor: pointer;
     transition: all 0.13s;
   }
-  .lopt:hover:not(:disabled) { border-color: var(--text); }
-  .lopt.right { background: #3a9d6b; border-color: #3a9d6b; color: #fff; }
-  .lopt.wrong { background: #d9534f; border-color: #d9534f; color: #fff; animation: kshake 0.3s ease; }
-  .lopt:disabled { opacity: 0.45; cursor: default; }
+  .lopt:hover:not(:disabled) { background: #fff; }
+  .lopt.right {
+    background: #daeee2;
+    border-color: #7cb79a;
+    color: #2d6a4a;
+    font-weight: 600;
+  }
+  .lopt.wrong {
+    background: #f6dedb;
+    border-color: #d8a29d;
+    color: #9c4a44;
+    animation: kshake 0.3s ease;
+  }
+  .lopt:disabled { cursor: default; }
+  .lopt:disabled:not(.right):not(.wrong) { opacity: 0.4; }
+  .lopt.wrong:disabled { opacity: 0.75; }
 
-  /* нижняя строка режима 覚: «назад» слева, счётчик по центру */
-  .lstat {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-  }
+  /* «назад» — кружок в левом верхнем углу карточки */
+  .qcard { position: relative; }
   .lback {
-    border: none;
-    background: transparent;
-    padding: 2px 6px;
-    font-family: 'Geologica', sans-serif;
-    font-size: 0.74rem;
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    border-color: rgba(0,0,0,0.14);
     color: rgba(0,0,0,0.45);
-    cursor: pointer;
+    font-size: 0.9rem;
   }
-  .lback:hover:not(:disabled) { color: var(--text); }
-  .lback:disabled { opacity: 0.25; cursor: default; }
-  .lstat span { margin-right: auto; margin-left: auto; }
+  .lback:hover:not(:disabled) { background: rgba(255,255,255,0.7); color: var(--text); }
+  .lback:disabled { opacity: 0.28; }
 
   /* карточка письма внутри 覚 */
   .lactions { justify-content: flex-end; margin: 0 0 4px; }
@@ -644,7 +666,6 @@
 
 <footer>
   <span id="ftotal"></span>
-  <span>порядок черт — KanjiVG, CC BY-SA 3.0</span>
   <span>2026</span>
 </footer>
 
@@ -3436,7 +3457,8 @@ const UI = {
   fromStory:   t => `из истории «${t}»`,
   footLearn:   n => `残り ${n}`,
   noStore:     'прогресс не сохранится: браузер не даёт локальному файлу хранилище',
-  back:        '← назад',
+  back:        '←',
+  backTitle:   'вернуться к предыдущему заданию',
   resumed:     'продолжаем прошлую серию',
   learnLeft:   (i, n) => `${i} из ${n}`,
   learnDone:   n => `${n} взято`,
@@ -3453,8 +3475,9 @@ const UI = {
   openBg:     '#ffffff',
   openBorder: '#d4d4d4',
   openText:   '#999',
-  right:      '#3a9d6b',
-  wrong:      '#d9534f',
+  // приглушённые, чтобы не спорить с пастельными карточками
+  right:      '#4e9c74',
+  wrong:      '#c9635c',
   ink:        '#1a1a1a',
   ghost:      '#c4c4c4'
 };
@@ -4413,7 +4436,7 @@ function buildLearn() {
 
   const queue = [];
   pool.forEach(k => {
-    queue.push({k, type: 'kread'});
+    if (mainReading(k)) queue.push({k, type: 'kread'});   // у 々 чтения нет
     if (k.w && k.w.length) queue.push({k, type: 'reading'});
     const src = fillTask(k);
     if (src) queue.push({k, type: 'fill', src});
@@ -4432,10 +4455,30 @@ function startLearn() {
   renderLearn();
 }
 
+// Все чтения кандзи из таблицы учебника, одним списком.
+const allReadings = k => [...(k.on || '').split('・'), ...(k.kun || '').split('・')].filter(Boolean);
+
+// Какое чтение спрашивать. Просто «первое кунное» брать нельзя:
+// у 六 кун — むっ, и он живёт только в 六つ, а основное чтение ろく.
+// Поэтому берём то чтение, которым кандзи читается в первом слове-примере,
+// то есть ровно в том, что подсвечено в 漢字表 этого урока.
+function mainReading(k) {
+  const all = allReadings(k);
+  const w0 = k.w && k.w[0];
+  if (w0) {
+    if (w0[0] === k.k && w0[1]) return w0[1];              // пример — сам иероглиф
+    const hit = all.find(r => w0[1] && w0[1].startsWith(r)); // кандзи в начале слова
+    if (hit) return hit;
+  }
+  return all[0] || '';
+}
+
 // случайные варианты-обманки того же вида
-function distractors(k, field, n) {
+function distractors(k, field, n, pool) {
   const mine = field(k);
-  const rest = K.filter(x => x.k !== k.k && field(x) && field(x) !== mine)
+  const own = new Set(allReadings(k));                      // не предлагать другое чтение того же кандзи
+  const rest = (pool || K).filter(x => x.k !== k.k && field(x) &&
+                                       field(x) !== mine && !own.has(field(x)))
                 .sort(() => Math.random() - 0.5);
   const seen = new Set([mine]);
   const out = [];
@@ -4501,29 +4544,31 @@ function renderLearn() {
   learn.cur = task;
   const k = task.k;
 
-  // нижняя строка: кнопка «назад» и счётчик
-  const stat = document.createElement('div');
-  stat.className = 'qstat lstat';
+  // кружок «назад» в левом верхнем углу карточки, как иконки справа
   const back = document.createElement('button');
-  back.className = 'lback';
+  back.className = 'kmini lback';
   back.textContent = UI.back;
+  back.title = UI.backTitle;
   back.disabled = !learn.history.length;
   back.onclick = backLearn;
-  const counter = document.createElement('span');
+  card.appendChild(back);
+
+  // счётчик по центру внизу
+  const stat = document.createElement('div');
+  stat.className = 'qstat';
   const setCounter = () => {
-    counter.textContent = UI.learnLeft(learn.total - learn.queue.length + 1, learn.total) +
-                          (learn.wrong ? ' · ' + UI.mistakes(learn.wrong) : '');
+    stat.textContent = UI.learnLeft(learn.total - learn.queue.length + 1, learn.total) +
+                       (learn.wrong ? ' · ' + UI.mistakes(learn.wrong) : '');
   };
   setCounter();
-  stat.append(back, counter);
 
   // ── выбор из вариантов: чтение кандзи или чтение слова ──
   if (task.type === 'kread' || task.type === 'reading') {
     const isKanji = task.type === 'kread';
-    // у кандзи берём первое кунное чтение, если его нет — онное
-    const readOf = x => ((x.kun || x.on) || '').split('・')[0];
     const word = isKanji ? null : k.w[Math.floor(Math.random() * k.w.length)];
-    const right = isKanji ? readOf(k) : word[1];
+    const right = isKanji ? mainReading(k) : word[1];
+    // обманки берём из кандзи тех же уроков, а не из всей базы
+    const sameUnits = K.filter(x => x.u === k.u);
 
     const prompt = document.createElement('div');
     prompt.className = 'qprompt';
@@ -4534,9 +4579,21 @@ function renderLearn() {
     sub.className = 'qsub';
     sub.textContent = UI.pickReading;
 
-    const opts = [right, ...distractors(k, isKanji ? readOf
-                                                   : (x => x.w[0] && x.w[0][1]), 3)]
+    const opts = [right, ...distractors(k, isKanji ? mainReading
+                                                   : (x => x.w[0] && x.w[0][1]), 3, sameUnits)]
                    .sort(() => Math.random() - 0.5);
+    // у кандзи значение и мнемоника видны сразу — это подсказка, а не вопрос;
+    // у слова перевод открывается только после ответа
+    const mn = document.createElement('div');
+    mn.className = 'qhint';
+    mn.textContent = isKanji ? (k.mean + (k.m ? '\n' + k.m : '')) : '';
+
+    const next = document.createElement('button');
+    next.className = 'spoiler-btn qnext';
+    next.textContent = UI.next;
+    next.style.display = 'none';
+    next.onclick = () => answerLearn(true);
+
     const box = document.createElement('div');
     box.className = 'lopts';
     opts.forEach(o => {
@@ -4544,10 +4601,14 @@ function renderLearn() {
       b.className = 'lopt';
       b.textContent = o;
       b.onclick = () => {
-        if (b.disabled) return;
+        if (b.disabled || next.style.display === '') return;
         if (o === right) {
           b.classList.add('right');
-          setTimeout(() => answerLearn(true), 420);
+          box.querySelectorAll('.lopt').forEach(x => { x.disabled = true; });
+          mn.textContent = isKanji
+            ? (k.mean + (k.m ? '\n' + k.m : ''))
+            : `${word[0]}（${word[1]}）— ${word[2]}`;
+          next.style.display = '';          // дальше только по кнопке
         } else {
           b.classList.add('wrong');
           b.disabled = true;
@@ -4559,12 +4620,7 @@ function renderLearn() {
       box.appendChild(b);
     });
 
-    // значение и мнемоника остаются видны — они тут подсказка, а не вопрос
-    const mn = document.createElement('div');
-    mn.className = 'qhint';
-    mn.textContent = isKanji ? (k.mean + (k.m ? '\n' + k.m : '')) : '';
-
-    card.append(prompt, sub, box, mn, stat);
+    card.append(prompt, sub, box, mn, next, stat);
     return;
   }
 
@@ -4678,8 +4734,9 @@ function renderLearn() {
     // Карточка сама никуда не перескакивает: написала или подсмотрела —
     // смотри порядок черт сколько нужно, дальше только по кнопке.
     let pendingOk = true;
-    const next = makeButton('main', UI.next, theme);
-    next.classList.add('qnext');
+    const next = document.createElement('button');
+    next.className = 'spoiler-btn qnext';
+    next.textContent = UI.next;
     next.style.display = 'none';
     next.onclick = () => answerLearn(pendingOk);
 
@@ -4687,7 +4744,11 @@ function renderLearn() {
 
     attachWriter({
       card, box, svg, cv, prog, read, words, btn, undo, clear, theme,
-      onDone: ok => { pendingOk = ok; next.style.display = ''; }
+      onDone: ok => {
+        pendingOk = ok;
+        btn.style.display = 'none';     // ответ уже дан — подсказка больше не нужна
+        next.style.display = '';
+      }
     });
     return;
   }
