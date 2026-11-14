@@ -25,7 +25,14 @@
     --c3: #E1E5F3;
     --c4: #FFF0F7;
     --btn-h: 32px;
+    --btn-tall: 46px;
     --btn-border: #d4d4d4;
+    /* единые токены кнопок: граница, текст и два ховера —
+       на белой странице темнее, на цветной карточке светлее */
+    --btn-bd: rgba(0,0,0,0.12);
+    --btn-fg: rgba(0,0,0,0.55);
+    --btn-hover-page: rgba(0,0,0,0.045);
+    --btn-hover-card: #ffffff;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -92,29 +99,53 @@
     flex: 1;
   }
 
-  /* ── SHARED PILL STYLE ── */
-  .pill {
-    height: var(--btn-h);
+  /* ══════════════════════════════════════════
+     КНОПКИ — одна база на все режимы.
+     Геометрия, типографика, ховер и выключенное состояние живут здесь;
+     варианты ниже отличаются только размером и назначением.
+     ══════════════════════════════════════════ */
+  .pill, .mode-btn, .spoiler-btn, .lopt, .qtile, .kmini {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    box-sizing: border-box;
+    border: 1.5px solid var(--btn-bd);
     border-radius: 100px;
-    border: 1.5px solid var(--btn-border);
     background: transparent;
-    font-family: 'Geologica', sans-serif;
-    font-size: 0.78rem;
+    color: var(--btn-fg);
+    font-family: 'Geologica', 'Noto Sans JP', sans-serif;
     font-weight: 500;
-    cursor: pointer;
-    transition: all 0.13s;
-    white-space: nowrap;
     line-height: 1;
-    color: var(--muted);
-    padding: 0 13px;
+    cursor: pointer;
+    transition: background 0.13s, border-color 0.13s, color 0.13s, opacity 0.13s;
   }
 
-  .pill:hover {
-    background: rgba(0,0,0,0.035);
+  /* кнопки страницы темнеют, кнопки на карточке светлеют */
+  .pill:hover:not(.active),
+  .mode-btn:hover:not(.active) {
+    background: var(--btn-hover-page);
     color: var(--text);
+  }
+  .spoiler-btn:hover:not(:disabled),
+  .lopt:hover:not(:disabled),
+  .qtile:hover:not(:disabled),
+  .kmini:hover:not(:disabled) {
+    background: var(--btn-hover-card);
+    color: var(--text);
+  }
+
+  .pill:disabled, .mode-btn:disabled, .spoiler-btn:disabled,
+  .lopt:disabled, .qtile:disabled, .kmini:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+
+  /* ── SHARED PILL STYLE ── */
+  .pill {
+    height: var(--btn-h);
+    font-size: 0.78rem;
+    white-space: nowrap;
+    padding: 0 13px;
   }
 
   .pill.active {
@@ -231,24 +262,10 @@
   /* ── 答え BUTTON SPOILER ── */
   .spoiler-btn {
     width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     height: var(--btn-h);
-    border-radius: 100px;
-    border: 1.5px solid transparent; /* set per card via JS, same tone as --btn-border */
-    background: transparent;
-    font-family: 'Noto Sans JP', sans-serif;
     font-size: 0.78rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.15s ease;
     letter-spacing: 0.05em;
     flex-shrink: 0;
-  }
-
-  .spoiler-btn:hover {
-    color: rgba(0,0,0,0.7);
   }
 
   /* answer text — hidden but takes up space to keep card height stable */
@@ -279,18 +296,8 @@
   .mode-btn {
     height: var(--btn-h);
     min-width: 36px;
-    border-radius: 100px;
-    border: 1.5px solid var(--btn-border);
-    background: transparent;
-    font-family: 'Noto Sans JP', sans-serif;
     font-size: 0.85rem;
-    font-weight: 500;
-    line-height: 1;
-    color: var(--muted);
-    cursor: pointer;
-    transition: all 0.13s;
   }
-  .mode-btn:hover { background: rgba(0,0,0,0.035); color: var(--text); }
   .mode-btn.active {
     background: var(--text);
     border-color: var(--text);
@@ -315,20 +322,9 @@
   .kmini {
     width: 26px;
     height: 26px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
     padding: 0;
-    border-radius: 100px;
-    border: 1.5px solid transparent;
-    background: transparent;
-    font-family: 'Geologica', sans-serif;
     font-size: 0.8rem;
-    line-height: 1;
-    cursor: pointer;
-    transition: all 0.15s ease;
   }
-  .kmini:disabled { opacity: 0.3; cursor: default; }
 
   .kcard-head {
     display: flex;
@@ -504,20 +500,11 @@
   .qtile {
     width: 52px;
     height: 52px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
     border-radius: 14px;
-    border: 1.5px solid rgba(0,0,0,0.1);
     background: rgba(255,255,255,0.6);
-    font-family: 'Noto Sans JP', sans-serif;
     font-size: 1.5rem;
-    font-weight: 500;
     color: var(--text);
-    cursor: pointer;
-    transition: all 0.13s;
   }
-  .qtile:hover { background: #fff; }
   .qtile.wrong {
     background: #f6dedb;
     border-color: #d8a29d;
@@ -533,23 +520,16 @@
     margin-top: 18px;
   }
 
-  .qhintbtn, .qagain {
-    max-width: 220px;
-    margin: 20px auto 0;
-    border-color: rgba(0,0,0,0.18);
-    color: rgba(0,0,0,0.55);
-  }
-  .qhintbtn:disabled { opacity: 0.35; cursor: default; }
+  /* нижние действия карточки: всегда во всю ширину, чтобы не разъезжались */
+  .qhintbtn, .qagain, .qnext { margin-top: 18px; }
 
-  /* главная кнопка «далее» — тёмная, одна на карточке */
+  /* главная кнопка — тёмная заливка; на карточке она всегда одна */
   .qnext {
-    max-width: 220px;
-    margin: 18px auto 0;
     background: var(--text) !important;
     border-color: var(--text) !important;
     color: #fff !important;
   }
-  .qnext:hover { opacity: 0.85; }
+  .qnext:hover:not(:disabled) { opacity: 0.85; }
 
   /* мнемоника на карточке прописи */
   .kmnemo {
@@ -572,18 +552,14 @@
   }
 
   .lopt {
-    min-height: 46px;
+    width: 100%;
+    min-height: var(--btn-tall);
     padding: 10px 16px;
     border-radius: 14px;
-    border: 1.5px solid rgba(0,0,0,0.1);
     background: rgba(255,255,255,0.6);
-    font-family: 'Geologica', 'Noto Sans JP', sans-serif;
     font-size: 1rem;
     color: var(--text);
-    cursor: pointer;
-    transition: all 0.13s;
   }
-  .lopt:hover:not(:disabled) { background: #fff; }
   .lopt.right {
     background: #daeee2;
     border-color: #7cb79a;
@@ -606,12 +582,8 @@
     position: absolute;
     top: 14px;
     left: 14px;
-    border-color: rgba(0,0,0,0.14);
-    color: rgba(0,0,0,0.45);
     font-size: 0.9rem;
   }
-  .lback:hover:not(:disabled) { background: rgba(255,255,255,0.7); color: var(--text); }
-  .lback:disabled { opacity: 0.28; }
 
   /* карточка письма внутри 覚 */
   .lactions { justify-content: flex-end; margin: 0 0 4px; }
