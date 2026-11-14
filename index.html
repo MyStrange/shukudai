@@ -3441,7 +3441,7 @@ const UI = {
   },
 
   // сколько карточек или вопросов за один заход и сколько плиток в пуле
-  deck: { sentence: 10, kanji: 12, quiz: 15, pool: 40, learn: 4 },
+  deck: { sentence: 10, kanji: 12, quiz: 15, pool: 20, learn: 4 },
 
   // вид открытой карточки
   openBg:     '#ffffff',
@@ -4113,17 +4113,9 @@ function buildQuiz() {
 
   items = items.sort(() => Math.random() - 0.5).slice(0, UI.deck.quiz);
 
-  // В пуле обязаны быть все нужные кандзи, остальное — случайные отвлекающие
-  // из того же набора уроков. Иначе при двенадцати уроках плиток под сотню,
-  // и это уже не выбор, а прокрутка.
-  const need = new Set();
-  items.forEach(q => q.b.forEach(b => [...b[0]].forEach(ch => need.add(ch))));
-  const extra = [...pool].filter(ch => !need.has(ch)).sort(() => Math.random() - 0.5);
-  const tiles = [...need, ...extra].slice(0, Math.max(need.size, UI.deck.pool));
-
   quiz = {
     items,
-    pool: tiles.sort(() => Math.random() - 0.5),
+    pool: [...pool],   // все кандзи набора; плитки на каждый вопрос берутся отсюда
     i: 0, wrong: 0, hints: 0, bi: 0, filled: [], hint: 0, locked: false
   };
 }
@@ -4199,7 +4191,14 @@ function renderQuiz() {
   // ── плитки ──
   const pool = document.createElement('div');
   pool.className = 'qpool';
-  quiz.pool.forEach(ch => {
+  // У каждого предложения своё поле: нужные кандзи плюс случайные
+  // отвлекающие из того же набора уроков, всего UI.deck.pool плиток.
+  const need = new Set();
+  q.b.forEach(b => [...b[0]].forEach(ch => need.add(ch)));
+  const extra = quiz.pool.filter(ch => !need.has(ch)).sort(() => Math.random() - 0.5);
+  const tiles = [...need, ...extra].slice(0, Math.max(need.size, UI.deck.pool))
+    .sort(() => Math.random() - 0.5);
+  tiles.forEach(ch => {
     const t = document.createElement('button');
     t.className = 'qtile';
     t.textContent = ch;
