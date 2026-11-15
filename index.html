@@ -215,7 +215,6 @@
     .main { padding: var(--gap) 14px 60px; }
     .topbar { padding: 18px 14px 16px; }
     .grid { grid-template-columns: 1fr; }
-    footer { padding: 12px 14px; }
     .topic-row { column-gap: 4px; row-gap: 0; }
   }
   @media (min-width: 681px) and (max-width: 980px) {
@@ -469,6 +468,9 @@
   }
   .qprompt .blank.cur { border-bottom-color: rgba(0,0,0,0.6); }
   .qprompt .blank.right { color: #3a9d6b; border-bottom-color: #3a9d6b; }
+  .qprompt ruby { ruby-position: under; }
+  .qprompt ruby rt { font-size: 0.52em; color: rgba(0,0,0,0.55); font-weight: 500; }
+  .qprompt.read { line-height: 2.2; }
 
   .qsub {
     font-family: 'Geologica', sans-serif;
@@ -594,19 +596,6 @@
   .qcard .kwords { text-align: center; margin-top: 6px; }
   .qcard .kmnemo { text-align: center; margin-top: 6px; }
 
-  /* ── FOOTER ── */
-  footer {
-    padding: 14px 28px;
-    border-top: 1px solid var(--border);
-    font-size: 0.72rem;
-    color: var(--muted);
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 6px;
-    font-family: 'Geologica', sans-serif;
-    font-weight: 400;
-  }
 </style>
 </head>
 <body>
@@ -635,11 +624,6 @@
 <main class="main">
   <div class="grid" id="grid"></div>
 </main>
-
-<footer>
-  <span id="ftotal"></span>
-  <span>2026</span>
-</footer>
 
 <script>
 // ══════════════════════════════════════════
@@ -3414,20 +3398,15 @@ const UI = {
   },
   strokeNow:    (i, n) => `черта ${i} из ${n}`,
   strokesDone:  n => `${n} из ${n} ✓`,
-  reading:      r => `читается: ${r}`,
   score:        (i, n) => `${i} из ${n}`,
   mistakes:     n => `ошибок ${n}`,
   hintsUsed:    n => `подсказок ${n}`,
   noMistakes:   'без единой ошибки',
-  footSentences: n => `全 ${n} 文`,
-  footKanji:     n => `全 ${n} 字`,
-  footQuiz:      n => `全 ${n} 問`,
 
   // режим 覚
   pickMeaning: 'что это значит?',
   pickReading: 'как читается?',
   fromStory:   t => `из истории «${t}»`,
-  footLearn:   n => `残り ${n}`,
   noStore:     'прогресс не сохранится: браузер не даёт локальному файлу хранилище',
   back:        '←',
   backTitle:   'вернуться к предыдущему заданию',
@@ -3621,7 +3600,6 @@ function shuffle() {
 }
 
 function render(items) {
-  document.getElementById('ftotal').textContent = UI.footSentences(D.length);
   const grid = document.getElementById('grid');
   grid.className = 'grid';
   grid.innerHTML = '';
@@ -4016,7 +3994,6 @@ function attachWriter(o) {
 }
 
 function renderKanji(items) {
-  document.getElementById('ftotal').textContent = UI.footKanji(K.length);
   const grid = document.getElementById('grid');
   grid.innerHTML = '';
 
@@ -4124,7 +4101,6 @@ function renderQuiz() {
   const grid = document.getElementById('grid');
   grid.className = 'grid quiz';
   grid.innerHTML = '';
-  document.getElementById('ftotal').textContent = UI.footQuiz(quiz.items.length);
 
   const card = document.createElement('div');
   card.className = 'qcard';
@@ -4234,11 +4210,9 @@ function renderQuiz() {
     const cur = q.b[quiz.bi];
     const lines = [];
     if (quiz.hint >= 1) {
-      // чтения кандзи, которые уже стоят в предложении
-      if (q.f && q.f.length) {
-        lines.push(q.f.map(x => `${x[0]}（${x[1]}）`).join('　'));
-      }
-      lines.push(UI.reading(cur[2]));
+      // чтения кандзи, которые уже стоят в предложении, — подстрочником
+      if (!prompt.classList.contains('read')) showReadings(q, prompt, spans, false);
+      lines.push(cur[2]);
     }
     if (quiz.hint >= 2) lines.push(q.ru);
     hintBox.textContent = lines.join('\n');
@@ -4274,6 +4248,7 @@ function renderQuiz() {
       quiz.locked = true;
       refresh();
       spans.forEach(s => s.classList.add('right'));
+      showReadings(q, prompt, spans);       // фуригана над всеми кандзи
       hintBox.textContent = q.ru;            // показываем перевод целиком
       hintBtn.disabled = false;
       hintBtn.textContent = UI.next;
@@ -4289,6 +4264,56 @@ function renderQuiz() {
   }
 
   refresh();
+}
+
+// Слово с чтением над ним. Общую кану по краям не дублируем:
+// 書きました / かきました → 書(か)きました
+function ruby(word, reading) {
+  const isKana = ch => /[぀-ゟ]/.test(ch);
+  let a = 0, z = 0;
+  while (a < word.length - 1 && isKana(word[a]) && word[a] === reading[a]) a++;
+  while (z < word.length - 1 - a && isKana(word[word.length - 1 - z]) &&
+         word[word.length - 1 - z] === reading[reading.length - 1 - z]) z++;
+  const core = word.slice(a, word.length - z);
+  const frag = document.createDocumentFragment();
+  frag.append(word.slice(0, a));
+  if (/[㐀-鿿]/.test(core)) {
+    const r = document.createElement('ruby');
+    const rt = document.createElement('rt');
+    rt.textContent = reading.slice(a, reading.length - z);
+    r.append(core, rt);
+    frag.append(r);
+  } else frag.append(core);
+  frag.append(word.slice(word.length - z));
+  return frag;
+}
+
+// Предложение заново, с чтениями под кандзи, которые уже стояли в тексте (f),
+// а после верного ответа (blanks) — и под вставленными словами (b)
+function showReadings(q, prompt, spans, blanks = true) {
+  prompt.replaceChildren();
+  prompt.classList.add('read');
+  const fs = (q.f || []).slice().sort((x, y) => y[0].length - x[0].length);
+  q.jp.split(/(\{\d+\})/).forEach(part => {
+    const m = part.match(/^\{(\d+)\}$/);
+    if (m) {
+      const b = q.b[+m[1]];
+      if (blanks) spans[+m[1]].replaceChildren(ruby(b[0], b[2]));
+      prompt.append(spans[+m[1]]);
+      return;
+    }
+    let rest = part;
+    while (rest) {
+      let at = -1, hit = null;
+      fs.forEach(f => {
+        const i = rest.indexOf(f[0]);
+        if (i >= 0 && (at < 0 || i < at)) { at = i; hit = f; }
+      });
+      if (!hit) { prompt.append(rest); break; }
+      prompt.append(rest.slice(0, at), ruby(hit[0], hit[1]));
+      rest = rest.slice(at + hit[0].length);
+    }
+  });
 }
 
 // ══════════════════════════════════════════
@@ -4482,7 +4507,6 @@ function renderLearn() {
   grid.className = 'grid quiz';
   grid.innerHTML = '';
   const left = learn.queue.length;
-  document.getElementById('ftotal').textContent = UI.footLearn(left);
 
   const card = document.createElement('div');
   card.className = 'qcard';
